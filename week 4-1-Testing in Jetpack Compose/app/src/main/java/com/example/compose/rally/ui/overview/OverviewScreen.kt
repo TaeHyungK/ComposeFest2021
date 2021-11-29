@@ -16,8 +16,7 @@
 
 package com.example.compose.rally.ui.overview
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.compose.rally.R
 import com.example.compose.rally.RallyScreen
@@ -95,23 +95,39 @@ private fun AlertCard() {
         )
     }
 
-    var currentTargetElevation by remember { mutableStateOf(1.dp) }
-    LaunchedEffect(Unit) {
-        // Start the animation
-        currentTargetElevation = 8.dp
-    }
-    val animatedElevation = animateDpAsState(
-        targetValue = currentTargetElevation,
-        animationSpec = tween(durationMillis = 500),
-        finishedListener = {
-            currentTargetElevation = if (currentTargetElevation > 4.dp) {
-                1.dp
-            } else {
-                8.dp
-            }
-        }
+    // 애니메이션이 끝날때까지 기다렸다가 다시 실행하는 형태로 애니메이션을 구현되어있는 코드로
+    // 아래 코드는 무한 애니메이션이 돌기 때문에 Test를 실행하면 timeout이 발생하게 된다.
+//    var currentTargetElevation by remember { mutableStateOf(1.dp) }
+//    LaunchedEffect(Unit) {
+//        // Start the animation
+//        currentTargetElevation = 8.dp
+//    }
+//    val animatedElevation = animateDpAsState(
+//        targetValue = currentTargetElevation,
+//        animationSpec = tween(durationMillis = 500),
+//        finishedListener = {
+//            currentTargetElevation = if (currentTargetElevation > 4.dp) {
+//                1.dp
+//            } else {
+//                8.dp
+//            }
+//        }
+//    )
+
+    // Test에 적절한 애니메이션으로 교체.
+    //   - 무한 애니메이션인 것을 Compose Test가 이해하는 형태로 바꿈.
+    val infiniteElevationAnimation = rememberInfiniteTransition()
+    val animatedElevation: Dp by infiniteElevationAnimation.animateValue(
+        initialValue = 1.dp,
+        targetValue = 8.dp,
+        typeConverter = Dp.VectorConverter,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500),
+            repeatMode = RepeatMode.Reverse
+        )
     )
-    Card(elevation = animatedElevation.value) {
+
+    Card(elevation = animatedElevation) {
         Column {
             AlertHeader {
                 showDialog = true
