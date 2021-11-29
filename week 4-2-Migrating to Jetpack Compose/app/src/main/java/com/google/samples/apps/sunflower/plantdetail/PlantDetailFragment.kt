@@ -21,6 +21,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.material.MaterialTheme
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ShareCompat
 import androidx.core.widget.NestedScrollView
@@ -29,6 +31,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.composethemeadapter.MdcTheme
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.samples.apps.sunflower.R
@@ -104,6 +107,22 @@ class PlantDetailFragment : Fragment() {
                         true
                     }
                     else -> false
+                }
+            }
+
+            composeView.apply {
+                /**
+                 * DisposeOnDetachedFromWindow: 기본값, 뷰가 윈도우에서 분리될 때 컴포지션을 삭제함.
+                 * DisposeOnLifecycleDestroyed: Lifecycle이 끝나면 함께 컴포지션을 삭제하는 전략. LifecycleOwner와 1대1 관계를 공유하는 ComposeView에 적합함.
+                 * DisposeOnViewTreeLifecycleDestroyed: LifecycleOwner를 모르는 경우 사용할 수 있는 전략으로 현재 윈도우에 붙어있는 뷰가 Destroyed될 때 컴포지션을 함께 삭제함.
+                 */
+                setViewCompositionStrategy(
+                    ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+                )
+                setContent {
+                    MdcTheme {
+                        PlantDetailDescription(plantDetailViewModel)
+                    }
                 }
             }
         }
